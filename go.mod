@@ -7,9 +7,9 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
-	github.com/n-r-w/lg v0.0.0-20220619185307-1ce2595e5af1
-	github.com/n-r-w/nerr v0.0.0-20220619185355-db96d29f985d
-	github.com/n-r-w/tools v0.0.0-20220619185834-27cdd81a54fd
+	github.com/n-r-w/lg v1.0.0
+	github.com/n-r-w/nerr v1.0.0
+	github.com/n-r-w/tools v1.0.0
 	github.com/thanhpk/randstr v1.0.4
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 )
@@ -25,7 +25,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/lib/pq v1.10.6 // indirect
-	github.com/n-r-w/eno v0.0.0-20220619184937-425cde54ada1 // indirect
+	github.com/n-r-w/eno v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
