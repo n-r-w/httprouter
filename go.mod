@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/n-r-w/lg v1.0.0
-	github.com/n-r-w/nerr v1.0.0
+	github.com/n-r-w/nerr v1.0.1
 	github.com/n-r-w/tools v1.0.0
 	github.com/thanhpk/randstr v1.0.4
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
