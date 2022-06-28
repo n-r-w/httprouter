@@ -12,10 +12,10 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/thanhpk/randstr"
 	"github.com/n-r-w/lg"
 	"github.com/n-r-w/nerr"
 	"github.com/n-r-w/tools"
+	"github.com/thanhpk/randstr"
 	"golang.org/x/exp/slices"
 )
 
@@ -122,7 +122,7 @@ func (router *RouterData) RespondData(w http.ResponseWriter, code int, contentTy
 				w.Header().Set("Content-Type", contentType)
 			}
 			if jData, err1 := json.Marshal(data); err1 != nil {
-				_, err = rw.WriteHeaderAndData(http.StatusInternalServerError, []byte(fmt.Sprintf(`{"error": "%v"}`, err1)))
+				_, err = rw.WriteHeaderAndData(http.StatusInternalServerError, []byte(fmt.Sprintf(`{"error": "%v"}`, nerr.New(err1))))
 			} else {
 				_, err = rw.WriteHeaderAndData(code, jData)
 			}
@@ -189,7 +189,7 @@ func (router *RouterData) RespondCompressed(w http.ResponseWriter, r *http.Reque
 		sourceData, errJSON = json.Marshal(data)
 
 		if errJSON != nil {
-			router.RespondError(w, http.StatusInternalServerError, errJSON)
+			router.RespondError(w, http.StatusInternalServerError, nerr.New(errJSON))
 			return
 		}
 	}
