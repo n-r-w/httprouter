@@ -24,10 +24,10 @@ import (
 type contextKey string
 
 const (
-	// Ключ для хранения информации о сессии со стороны пользователя
-	sessionName = "logserver"
-	// Ключ для хранения id пользователя в сессии (в куках)
-	userIDKeyName = "user_id"
+	// // Ключ для хранения информации о сессии со стороны пользователя
+	// sessionName = "session_name"
+	// // Ключ для хранения id пользователя в сессии (в куках)
+	// userIDKeyName = "user_id"
 	// Ключ для хранения номера сессии в контексте запроса
 	ctxKeyRequestID = contextKey("request-id")
 )
@@ -238,15 +238,15 @@ func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) 
 }
 
 // StartSession ...
-func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID uint64, sessionAge int) error {
+func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID uint64, sessionAge int, cookieName string, cookieKey string) error {
 	// получаем сесиию
-	session, err := router.sessionStore.New(r, sessionName)
+	session, err := router.sessionStore.New(r, cookieName)
 	if err != nil {
 		return err
 	}
 
 	// записываем информацию о том, что пользователь с таким ID залогинился
-	session.Values[userIDKeyName] = userID
+	session.Values[cookieKey] = userID
 	session.Options = &sessions.Options{
 		Path:   "/",
 		Domain: "",
@@ -260,15 +260,15 @@ func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, u
 	return router.sessionStore.Save(r, w, session)
 }
 
-func (router *RouterData) CheckSession(r *http.Request) (userID uint64, err error) {
+func (router *RouterData) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID uint64, err error) {
 	// извлекаем из запроса пользователя куки с информацией о сессии
-	session, err := router.sessionStore.Get(r, sessionName)
+	session, err := router.sessionStore.Get(r, cookieName)
 	if err != nil {
 		return 0, err
 	}
 
 	// ищем в информацию о пользователе в сессиях
-	ID, ok := session.Values[userIDKeyName]
+	ID, ok := session.Values[cookieKey]
 	if !ok || session.Options.MaxAge < 0 {
 		return 0, nerr.New("unauthorized")
 	}
@@ -276,9 +276,9 @@ func (router *RouterData) CheckSession(r *http.Request) (userID uint64, err erro
 	return ID.(uint64), nil
 }
 
-func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request) {
+func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request, cookieName string, cookieKey string) {
 	// получаем сесиию
-	session, err := router.sessionStore.Get(r, sessionName)
+	session, err := router.sessionStore.Get(r, cookieName)
 	if err != nil {
 		router.logger.Error("session store get error %v", err)
 
@@ -289,7 +289,7 @@ func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// удаляем из нее данные о логине
-	delete(session.Values, userIDKeyName)
+	delete(session.Values, cookieKey)
 	// сохраняем
 	if err := router.sessionStore.Save(r, w, session); err != nil {
 		router.logger.Error("session save error")

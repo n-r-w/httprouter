@@ -31,10 +31,11 @@ type Router interface {
 	// AddMiddleware - добавить цепочку обработчиков на промежуточном уровне
 	AddMiddleware(subroute string, mwf ...MiddlewareFunc)
 
-	// StartSession - запомнить новую сессию после логина
-	StartSession(w http.ResponseWriter, r *http.Request, userID uint64, sessionAge int) error
+	// StartSession - запомнить новую сессию после логина. Возвращает ID сессии
+	// В ответах пользователю будет добавлен куки
+	StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName string, cookieKey string) (string, error)
 	// CheckSession - проверить залогинен ли пользователь
-	CheckSession(*http.Request) (userID uint64, err error)
+	CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error)
 	// CloseSession - закрыть сессию
-	CloseSession(w http.ResponseWriter, r *http.Request)
+	CloseSession(w http.ResponseWriter, r *http.Request, cookieName string, cookieKey string)
 }
