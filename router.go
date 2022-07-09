@@ -238,7 +238,7 @@ func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) 
 }
 
 // StartSession ...
-func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID uint64, sessionAge int, cookieName string, cookieKey string) error {
+func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName string, cookieKey string) error {
 	// получаем сесиию
 	session, err := router.sessionStore.New(r, cookieName)
 	if err != nil {
@@ -260,20 +260,20 @@ func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, u
 	return router.sessionStore.Save(r, w, session)
 }
 
-func (router *RouterData) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID uint64, err error) {
+func (router *RouterData) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error) {
 	// извлекаем из запроса пользователя куки с информацией о сессии
 	session, err := router.sessionStore.Get(r, cookieName)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	// ищем в информацию о пользователе в сессиях
 	ID, ok := session.Values[cookieKey]
 	if !ok || session.Options.MaxAge < 0 {
-		return 0, nerr.New("unauthorized")
+		return "", nerr.New("unauthorized")
 	}
 
-	return ID.(uint64), nil
+	return ID.(string), nil
 }
 
 func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request, cookieName string, cookieKey string) {
