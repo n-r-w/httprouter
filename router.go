@@ -102,8 +102,12 @@ func (router *RouterData) RespondError(w http.ResponseWriter, code int, err erro
 
 	errorMap := map[string]any{}
 	if ne, ok := err.(*nerr.Error); ok {
-		errorMap["code"] = ne.TopCode()
-		errorMap["trace"] = ne.Trace()
+		if tc := ne.TopCode(); tc != 0 {
+			errorMap["code"] = tc
+		}
+		if tr := ne.Trace(); len(tr) > 0 {
+			errorMap["trace"] = tr
+		}
 		errorMap["detail"] = ne.TopOp()
 	} else {
 		errorMap["detail"] = err.Error()
