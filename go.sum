@@ -76,8 +76,8 @@ github.com/mattn/go-isatty v0.0.5/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hd
 github.com/mattn/go-isatty v0.0.7/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/n-r-w/eno v1.0.2 h1:nSHTkHmVNQLj20K1gDS+ImJzM7/jO8wNW5GxF60ssDY=
 github.com/n-r-w/eno v1.0.2/go.mod h1:602sG4zbQuxCJQRvjRYAuyiVNV9TbBA1te7o5L63+nc=
-github.com/n-r-w/lg v1.0.1 h1:KBHAIEY5uulsj/1ZbAwLw8IDAVgFIA6Lkqql6RZlxWc=
-github.com/n-r-w/lg v1.0.1/go.mod h1:/yrLc0g9V88Mo0uaSHVrI+gKXZBjyCrBJchgsSQeNVo=
+github.com/n-r-w/lg v1.0.2 h1:MG7hdpaZ3H0J2yLeTQ2oIyO1MTUJUzqhKUVWq2MtYCY=
+github.com/n-r-w/lg v1.0.2/go.mod h1:/yrLc0g9V88Mo0uaSHVrI+gKXZBjyCrBJchgsSQeNVo=
 github.com/n-r-w/nerr v1.0.5 h1:xULIDmot4smEAFwk0KL5TmP7Qo26whjuaP3fFugQAYg=
 github.com/n-r-w/nerr v1.0.5/go.mod h1:6YFwCzftSlF+eEDE8zm3BNuXTAjURXrcbDP+tOJhy7Y=
 github.com/n-r-w/tools v1.0.1 h1:rO9CFEBD35xIAhUQtn3suKg9X/r/AZ2NruGojX1Do9w=

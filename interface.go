@@ -32,7 +32,7 @@ type Router interface {
 	AddMiddleware(subroute string, mwf ...MiddlewareFunc)
 
 	// StartSession - запомнить новую сессию после логина. В ответах пользователю будет добавлен куки
-	StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName string, cookieKey string,
+	StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName, cookieKey string,
 		secure, httpOnly bool) error
 	// CheckSession - проверить залогинен ли пользователь
 	CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error)

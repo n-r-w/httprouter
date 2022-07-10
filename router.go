@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/n-r-w/eno"
 	"github.com/n-r-w/lg"
 	"github.com/n-r-w/nerr"
 	"github.com/n-r-w/tools"
@@ -26,10 +27,7 @@ type contextKey string
 const (
 	// Ключ для хранения идентификатора запроса в контексте запроса
 	ctxKeyRequestID = contextKey("httprouter-request-id")
-	// Имя куки для хранения номера сессии (не секретно, просто для отладки по сквозному номеру)
-	cookieSessionName = "nrwroutersession"
-	// Имя ключа в куки для хранения номера сессии
-	cookieSessionKey = "session-id"
+	RequestIDHeader = "X-Request-ID"
 )
 
 // Реализует интерфейс http.ResponseWriter
@@ -248,14 +246,14 @@ func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) 
 }
 
 // StartSession ...
-func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName string, cookieKey string,
-	secure, httpOnly bool) error {
+func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int,
+	cookieName, cookieKey string, secure, httpOnly bool) error {
 	router.CloseSession(w, r, cookieName, cookieKey)
 
 	// получаем сесиию
-	session, err := router.sessionStore.New(r, cookieName)
-	if err != nil {
-		return nerr.New(err)
+	session, _ := router.sessionStore.New(r, cookieName)
+	if session == nil {
+		return nerr.New(eno.ErrInternal)
 	}
 
 	// записываем информацию о том, что пользователь с таким ID залогинился
@@ -271,28 +269,7 @@ func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, u
 	if err := router.sessionStore.Save(r, w, session); err != nil {
 		return nerr.New(err)
 	}
-
-	// записываем уникальный номер сессии для возможности отладки
-	session, err = router.sessionStore.New(r, cookieSessionName)
-	if err != nil {
-		return nerr.New(err)
-	}
-	sessionId := uuid.New().String()
-	session.Values[cookieSessionKey] = sessionId
-	session.Options = &sessions.Options{
-		Path:     "/",
-		Domain:   "",
-		MaxAge:   int(sessionAge),
-		Secure:   false, // это не скрытая информация
-		HttpOnly: false,
-		SameSite: 0,
-	}
-	if err := router.sessionStore.Save(r, w, session); err != nil {
-		return nerr.New(err)
-	} else {
-		w.Header().Set("X-Session-ID", sessionId)
-		return nil
-	}
+	return nil
 }
 
 func (router *RouterData) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error) {
@@ -321,13 +298,6 @@ func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request, c
 			router.logger.Error("session save error")
 		}
 	}
-
-	// удаляем данные о номере сессии
-	sessionForID, _ := router.sessionStore.Get(r, cookieSessionName)
-	if sessionForID != nil {
-		delete(sessionForID.Values, cookieSessionKey)
-		router.sessionStore.Save(r, w, sessionForID)
-	}
 }
 
 func (router *RouterData) getSubrouter(path string) *mux.Router {
@@ -344,14 +314,7 @@ func (router *RouterData) getSubrouter(path string) *mux.Router {
 func (router *RouterData) setRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := uuid.New().String()
-		w.Header().Set("X-Request-ID", id)
-
-		session, err := router.sessionStore.Get(r, cookieSessionName)
-		if err == nil {
-			if sessionId, ok := session.Values[cookieSessionKey]; ok {
-				w.Header().Set("X-Session-ID", sessionId.(string))
-			}
-		}
+		w.Header().Set(RequestIDHeader, id)
 
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyRequestID, id)))
 	})
