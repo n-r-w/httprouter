@@ -101,7 +101,17 @@ func (router *RouterData) RespondError(w http.ResponseWriter, code int, err erro
 	}
 
 	rw.err = err
-	router.RespondData(rw, code, "application/json; charset=utf-8", map[string]string{"error": err.Error()})
+
+	errorMap := map[string]any{}
+	if ne, ok := err.(*nerr.Error); ok {
+		errorMap["code"] = ne.TopCode()
+		errorMap["trace"] = ne.Trace()
+		errorMap["detail"] = ne.TopOp()
+	} else {
+		errorMap["detail"] = err.Error()
+	}
+
+	router.RespondData(rw, code, "application/json; charset=utf-8", map[string]any{"error": errorMap})
 }
 
 // RespondData Ответ на запрос без сжатия
