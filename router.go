@@ -235,6 +235,26 @@ func (router *RouterData) AddRoute(subroute string, route string, handler http.H
 	r.HandleFunc(route, handler).Methods(methods...)
 }
 
+func (router *RouterData) GetVars(r *http.Request) map[string]string {
+	return mux.Vars(r)
+}
+
+func (router *RouterData) GetVar(r *http.Request, key string) string {
+	if v, ok := mux.Vars(r)[key]; ok {
+		return v
+	} else {
+		return ""
+	}
+}
+
+func (router *RouterData) GetParams(r *http.Request) map[string][]string {
+	return r.URL.Query()
+}
+
+func (router *RouterData) GetParam(r *http.Request, key string) string {
+	return r.URL.Query().Get(key)
+}
+
 // AddMiddleware ...
 func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) {
 	funcs := make([]mux.MiddlewareFunc, len(mwf))
