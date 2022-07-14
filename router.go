@@ -388,7 +388,7 @@ func (router *RouterData) logRequest(next http.Handler) http.Handler {
 	})
 }
 
-func (router *RouterData) readMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error) {
+func (router *RouterData) ReadMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error) {
 	if err := r.ParseMultipartForm(maxMemBytes); err != nil {
 		if nerr.Is(err, http.ErrNotMultipart) {
 			return nil, nil
@@ -419,7 +419,7 @@ func (router *RouterData) readMultipartForm(r *http.Request, maxMemBytes int64) 
 	return mdata, nil
 }
 
-func (router *RouterData) readBody(r *http.Request) ([]byte, error) {
+func (router *RouterData) ReadBody(r *http.Request) ([]byte, error) {
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		return nil, nerr.New(err)
 	} else {
