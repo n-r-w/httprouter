@@ -45,6 +45,11 @@ type Router interface {
 	// Возвращает параметр запроса по его ключу. Параметры передаются после знака вопроса
 	GetParam(r *http.Request, key string) string
 
+	// Получить все данные из MultipartForm
+	readMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error)
+	// Получить весь body
+	readBody(r *http.Request) ([]byte, error)
+
 	// StartSession - запомнить новую сессию после логина. В ответах пользователю будет добавлен куки
 	StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int, cookieName, cookieKey string,
 		secure, httpOnly bool) error

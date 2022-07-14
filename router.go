@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -385,4 +386,43 @@ func (router *RouterData) logRequest(next http.Handler) http.Handler {
 				errorText)
 		}
 	})
+}
+
+func (router *RouterData) readMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error) {
+	if err := r.ParseMultipartForm(maxMemBytes); err != nil {
+		if nerr.Is(err, http.ErrNotMultipart) {
+			return nil, nil
+		}
+		return nil, nerr.New(err)
+	}
+
+	mdata := map[string][]byte{}
+	for key, value := range r.MultipartForm.File {
+		if len(value) == 0 {
+			continue
+		}
+
+		f, err := value[0].Open()
+		if err != nil {
+			return nil, nerr.New(err)
+		}
+
+		if data, err := ioutil.ReadAll(f); err != nil {
+			f.Close()
+			return nil, nerr.New(err)
+		} else {
+			f.Close()
+			mdata[key] = data
+		}
+	}
+
+	return mdata, nil
+}
+
+func (router *RouterData) readBody(r *http.Request) ([]byte, error) {
+	if body, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, nerr.New(err)
+	} else {
+		return body, nil
+	}
 }
