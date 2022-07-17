@@ -60,8 +60,8 @@ func (w *responseWriterEx) WriteHeaderAndData(statusCode int, data []byte) (int,
 	return w.Write(data)
 }
 
-// RouterData - реализует интерфейс Router
-type RouterData struct {
+// Service - реализует интерфейс Router
+type Service struct {
 	mux          *mux.Router
 	sessionStore sessions.Store // Управление сессиями пользователей
 	logger       lg.Logger
@@ -69,8 +69,8 @@ type RouterData struct {
 	subrouters map[string]*mux.Router
 }
 
-func New(logger lg.Logger) *RouterData {
-	r := &RouterData{
+func New(logger lg.Logger) *Service {
+	r := &Service{
 		mux:          mux.NewRouter(),
 		sessionStore: sessions.NewCookieStore([]byte(randstr.Hex(32))),
 		logger:       logger,
@@ -88,12 +88,12 @@ func New(logger lg.Logger) *RouterData {
 	return r
 }
 
-func (router *RouterData) Handler() http.Handler {
+func (router *Service) Handler() http.Handler {
 	return router.mux
 }
 
 // RespondError Ответ с ошибкой
-func (router *RouterData) RespondError(w http.ResponseWriter, code int, err error) {
+func (router *Service) RespondError(w http.ResponseWriter, code int, err error) {
 	rw, ok := w.(*responseWriterEx)
 	if !ok {
 		panic("internal error")
@@ -118,7 +118,7 @@ func (router *RouterData) RespondError(w http.ResponseWriter, code int, err erro
 }
 
 // RespondData Ответ на запрос без сжатия
-func (router *RouterData) RespondData(w http.ResponseWriter, code int, contentType string, data interface{}) {
+func (router *Service) RespondData(w http.ResponseWriter, code int, contentType string, data interface{}) {
 	rw, ok := w.(*responseWriterEx)
 	if !ok {
 		panic("internal error")
@@ -164,7 +164,7 @@ func (router *RouterData) RespondData(w http.ResponseWriter, code int, contentTy
 }
 
 // RespondCompressed Ответ на запрос со сжатием если его поддерживает клиент
-func (router *RouterData) RespondCompressed(w http.ResponseWriter, r *http.Request, code int, compType CompressionType, contentType string, data interface{}) {
+func (router *Service) RespondCompressed(w http.ResponseWriter, r *http.Request, code int, compType CompressionType, contentType string, data interface{}) {
 	if data == nil {
 		router.RespondData(w, code, contentType, nil)
 
@@ -225,7 +225,7 @@ func (router *RouterData) RespondCompressed(w http.ResponseWriter, r *http.Reque
 }
 
 // AddRoute ...
-func (router *RouterData) AddRoute(subroute string, route string, handler http.HandlerFunc, methods ...string) {
+func (router *Service) AddRoute(subroute string, route string, handler http.HandlerFunc, methods ...string) {
 	var r *mux.Router
 	if len(subroute) == 0 {
 		r = router.mux
@@ -236,11 +236,11 @@ func (router *RouterData) AddRoute(subroute string, route string, handler http.H
 	r.HandleFunc(route, handler).Methods(methods...)
 }
 
-func (router *RouterData) GetVars(r *http.Request) map[string]string {
+func (router *Service) GetVars(r *http.Request) map[string]string {
 	return mux.Vars(r)
 }
 
-func (router *RouterData) GetVar(r *http.Request, key string) string {
+func (router *Service) GetVar(r *http.Request, key string) string {
 	if v, ok := mux.Vars(r)[key]; ok {
 		return v
 	} else {
@@ -248,16 +248,16 @@ func (router *RouterData) GetVar(r *http.Request, key string) string {
 	}
 }
 
-func (router *RouterData) GetParams(r *http.Request) map[string][]string {
+func (router *Service) GetParams(r *http.Request) map[string][]string {
 	return r.URL.Query()
 }
 
-func (router *RouterData) GetParam(r *http.Request, key string) string {
+func (router *Service) GetParam(r *http.Request, key string) string {
 	return r.URL.Query().Get(key)
 }
 
 // AddMiddleware ...
-func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) {
+func (router *Service) AddMiddleware(subroute string, mwf ...MiddlewareFunc) {
 	funcs := make([]mux.MiddlewareFunc, len(mwf))
 	for i, f := range mwf {
 		funcs[i] = func(h http.Handler) http.Handler { return f(h) }
@@ -271,7 +271,7 @@ func (router *RouterData) AddMiddleware(subroute string, mwf ...MiddlewareFunc) 
 }
 
 // StartSession ...
-func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int,
+func (router *Service) StartSession(w http.ResponseWriter, r *http.Request, userID string, sessionAge int,
 	cookieName, cookieKey string, secure, httpOnly bool) error {
 	router.CloseSession(w, r, cookieName, cookieKey)
 
@@ -297,7 +297,7 @@ func (router *RouterData) StartSession(w http.ResponseWriter, r *http.Request, u
 	return nil
 }
 
-func (router *RouterData) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error) {
+func (router *Service) CheckSession(r *http.Request, cookieName string, cookieKey string) (userID string, err error) {
 	// извлекаем из запроса пользователя куки с информацией о сессии
 	session, err := router.sessionStore.Get(r, cookieName)
 	if err != nil {
@@ -313,7 +313,7 @@ func (router *RouterData) CheckSession(r *http.Request, cookieName string, cooki
 	return ID.(string), nil
 }
 
-func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request, cookieName string, cookieKey string) {
+func (router *Service) CloseSession(w http.ResponseWriter, r *http.Request, cookieName string, cookieKey string) {
 	// получаем сесиию
 	sessionMain, _ := router.sessionStore.Get(r, cookieName)
 	if sessionMain != nil {
@@ -325,7 +325,7 @@ func (router *RouterData) CloseSession(w http.ResponseWriter, r *http.Request, c
 	}
 }
 
-func (router *RouterData) getSubrouter(path string) *mux.Router {
+func (router *Service) getSubrouter(path string) *mux.Router {
 	sr := router.subrouters[path]
 	if sr == nil {
 		sr = router.mux.PathPrefix(path).Subrouter()
@@ -336,7 +336,7 @@ func (router *RouterData) getSubrouter(path string) *mux.Router {
 }
 
 // Добавляем к контексту уникальный ID сесии с ключом ctxKeyRequestID
-func (router *RouterData) setRequestID(next http.Handler) http.Handler {
+func (router *Service) setRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := uuid.New().String()
 		w.Header().Set(RequestIDHeader, id)
@@ -346,7 +346,7 @@ func (router *RouterData) setRequestID(next http.Handler) http.Handler {
 }
 
 // Выводим запросы в лог
-func (router *RouterData) logRequest(next http.Handler) http.Handler {
+func (router *Service) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rw := &responseWriterEx{
@@ -388,7 +388,7 @@ func (router *RouterData) logRequest(next http.Handler) http.Handler {
 	})
 }
 
-func (router *RouterData) ReadMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error) {
+func (router *Service) ReadMultipartForm(r *http.Request, maxMemBytes int64) (map[string][]byte, error) {
 	if err := r.ParseMultipartForm(maxMemBytes); err != nil {
 		if nerr.Is(err, http.ErrNotMultipart) {
 			return nil, nil
@@ -419,7 +419,7 @@ func (router *RouterData) ReadMultipartForm(r *http.Request, maxMemBytes int64) 
 	return mdata, nil
 }
 
-func (router *RouterData) ReadBody(r *http.Request) ([]byte, error) {
+func (router *Service) ReadBody(r *http.Request) ([]byte, error) {
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		return nil, nerr.New(err)
 	} else {
